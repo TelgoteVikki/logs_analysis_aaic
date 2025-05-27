@@ -27,7 +27,6 @@ def get_logs(
         if skip < 0 or limit < 1:
             raise HTTPException(status_code=400, detail="Invalid pagination parameters: start must be >= 0 and limit must be >= 1")
 
-
         # Filtering Based on query parameters
         if level:
             logs = [log for log in logs if log.level == level]

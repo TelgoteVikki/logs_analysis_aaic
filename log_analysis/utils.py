@@ -1,13 +1,11 @@
 from serializers import LogEntry
 from typing import List, Optional, Dict
 from datetime import datetime
+from threading import Lock
 import hashlib
 import os
 
-
 LOG_DIRECTORY = "logs"
-
-from threading import Lock
 
 _cached_logs: Optional[List[LogEntry]] = None
 _cache_lock = Lock()
