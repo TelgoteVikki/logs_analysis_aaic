@@ -62,6 +62,16 @@ This will start the server at: http://127.0.0.1:8000
 
 🔌 API Endpoints
 GET /logs
+
+# Get first 10 logs
+GET /logs?start=0&limit=10
+
+# Get next 10 logs
+GET /logs?start=10&limit=10
+
+# Filter + paginate
+GET /logs?level=ERROR&start=0&limit=5
+
 Retrieve all logs (optionally filtered).
 
 Query Parameters:
@@ -82,6 +92,7 @@ GET /logs/{log_id}
 Get a single log entry by its ID.
 
 GET /logs/stats
+
 Returns:
 
 json

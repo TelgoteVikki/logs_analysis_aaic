@@ -7,6 +7,12 @@ import os
 
 LOG_DIRECTORY = "logs"
 
+from threading import Lock
+
+_cached_logs: Optional[List[LogEntry]] = None
+_cache_lock = Lock()
+
+
 def generate_log_id(entry: str) -> str:
     """Generate a unique log ID using SHA-1 hash."""
     return hashlib.sha1(entry.encode()).hexdigest()
@@ -33,15 +39,26 @@ def parse_log_line(line: str) -> Optional[LogEntry]:
 
 def read_all_logs() -> List[LogEntry]:
     logs = []
-    for filename in os.listdir(LOG_DIRECTORY):
-        filepath = os.path.join(LOG_DIRECTORY, filename)
-        
-        if os.path.isfile(filepath):
-            with open(filepath, "r") as f:
-                for line in f:
-                    entry = parse_log_line(line)
-                    if entry:
-                        logs.append(entry)
-        else:
-            print("no file")
-    return logs
+    global _cached_logs
+
+    with _cache_lock:
+        if _cached_logs is not None:
+            return _cached_logs
+
+        for filename in os.listdir(LOG_DIRECTORY):
+            filepath = os.path.join(LOG_DIRECTORY, filename)
+            
+            if os.path.isfile(filepath):
+                with open(filepath, "r") as f:
+                    for line in f:
+                        entry = parse_log_line(line)
+                        if entry:
+                            logs.append(entry)
+            
+        _cached_logs = logs
+        return logs
+
+def clear_cache():
+    global _cached_logs
+    with _cache_lock:
+        _cached_logs = None
