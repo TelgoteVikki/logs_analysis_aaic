@@ -1,32 +1,25 @@
+from fastapi_pagination import Page, add_pagination, paginate
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
 
-from typing import List, Optional, Dict
+from typing import Optional, Dict
 from datetime import datetime
 
-from utils import generate_log_id, parse_log_line, read_all_logs, clear_cache
+from utils import read_all_logs, clear_cache
 from serializers import LogEntry
-
 
 app = FastAPI(title="Log File Data Access and Analysis API")
 
-
 # --- API ENDPOINTS ---
-@app.get("/logs", response_model=List[LogEntry])
+@app.get("/logs", response_model=Page[LogEntry])
 def get_logs(
     level: Optional[str] = Query(None),
     component: Optional[str] = Query(None),
     start_time: Optional[datetime] = Query(None),
-    end_time: Optional[datetime] = Query(None),
-    skip: int = 0,
-    limit: int = 10
+    end_time: Optional[datetime] = Query(None)
 ):
     try:
         logs = read_all_logs()
-
-        if skip < 0 or limit < 1:
-            raise HTTPException(status_code=400, detail="Invalid pagination parameters: start must be >= 0 and limit must be >= 1")
-
+       
         # Filtering Based on query parameters
         if level:
             logs = [log for log in logs if log.level == level]
@@ -37,7 +30,7 @@ def get_logs(
         if end_time:
             logs = [log for log in logs if log.timestamp <= end_time]
 
-        return logs[skip:skip + limit]  #With page limit
+        return paginate(logs)
     
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=f"Value error: {str(ve)}")
@@ -72,8 +65,10 @@ def get_log_by_id(log_id: str):
             return log
     raise HTTPException(status_code=404, detail="Log entry not found")
 
-@app.post("/refresh/logs")
-def refresh_log_cache():
+@app.post("/cleare/logs-cache")
+def cleare_log_cache():
     clear_cache()
     return {"message": "Log cache cleared successfully."}
 
+
+add_pagination(app)

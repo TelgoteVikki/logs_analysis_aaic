@@ -1,20 +1,40 @@
 # logs_analysis_aaic
 
-# 📄 Log File Data Access and Analysis API
+# Log File Data Access and Analysis API
 
-This project provides a RESTful API using **FastAPI** that reads log files from a local directory and allows you to query and analyze log entries.
+This project provides a RESTful API using FastAPI that reads log files from a local directory and allows you to query and analyze log entries.
 
 ---
+Project Structure
 
-## 📁 Log File Format
+.
+├── log_analysis/
+│   ├── __pycache__/
+│   ├── logs/                # Folder containing log files (e.g., sample.log)
+│   ├── main.py              # FastAPI application entry point
+│   ├── serializers.py       # Pydantic models and response schemas
+│   ├── utils.py             # Helper functions for reading and filtering logs
+│   ├── requirements.txt     # Python dependencies
+│   └── README.md            # Project documentation
+
+## Log File Format
 
 Log files must be placed inside the `logs/` directory and should follow this format:
 
 Timestamp\tLevel\tComponent\tMessage
 
-makefile
+Create log file with below sample data.
 
-**Example:**
+Sample Test File
+You can create a sample log file inside the logs/ directory:
+
+logs/sample.log
+With content:
+
+2025-05-07 10:00:00\tINFO\tUserAuth\tUser 'john.doe' logged in successfully.
+2025-05-07 10:00:20\tERROR\tPayment\tTransaction failed for user 'jane.doe'.
+
+Sample:
 
 2025-05-07 10:00:00\tINFO\tUserAuth\tUser 'john.doe' logged in successfully.
 2025-05-07 10:00:15\tWARNING\tGeoIP\tCould not resolve IP address '192.168.1.100'.
@@ -22,11 +42,10 @@ makefile
 2025-05-07 10:00:25\tINFO\tUserAuth\tUser 'alice.smith' logged out.
 
 
-> 🔔 Each line must use **tabs** (`\t`) between fields — not spaces.
+> Each line must use tabs (`\t`) between fields — not spaces.
 
----
 
-## 🚀 Features
+## Features
 
 - Read and parse log entries from all `.log` files in the `logs/` directory.
 - Filter logs by:
@@ -41,7 +60,7 @@ makefile
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### 1. Clone the repo
 
@@ -55,22 +74,16 @@ source venv/bin/activate  # or venv\Scripts\activate on Windows
 3. Install dependencies
 
 pip install -r requirements.txt
-🛠️ Run the API
+Run the API
 
 uvicorn main:app --reload
 This will start the server at: http://127.0.0.1:8000
 
-🔌 API Endpoints
+API Endpoints
 GET /logs
 
-# Get first 10 logs
-GET /logs?skip=0&limit=10
-
-# Get next 10 logs
-GET /logs?skip=10&limit=10
-
-# Filter + paginate
-GET /logs?level=ERROR&skip=0&limit=5
+#Pagination
+GET logs?page=1&size=10
 
 Retrieve all logs (optionally filtered).
 
@@ -109,36 +122,11 @@ json
     "GeoIP": 30
   }
 }
-📂 Project Structure
 
-.
-├── log_analysis/
-│   ├── __pycache__/
-│   ├── logs/                # Folder containing log files (e.g., sample.log)
-│   ├── main.py              # FastAPI application entry point
-│   ├── serializers.py       # Pydantic models and response schemas
-│   ├── utils.py             # Helper functions for reading and filtering logs
-│   ├── requirements.txt     # Python dependencies
-│   └── README.md            # Project documentation
+POST /cleare/logs-cache
 
+NOTE: To optimize performance, the application uses caching to avoid re-reading and re-parsing log files on every request. This significantly improves response times for log retrieval APIs
 
-🧪 Sample Test File
-You can create a sample log file inside the logs/ directory:
+You can clear the log cache to ensure updated logs are reloaded. However, instead of exposing a manual "Clear Cache" API, we can use a scheduled cron job to periodically clear the cache at defined intervals.
 
-
-logs/sample.log
-With content:
-
-2025-05-07 10:00:00\tINFO\tUserAuth\tUser 'john.doe' logged in successfully.
-2025-05-07 10:00:20\tERROR\tPayment\tTransaction failed for user 'jane.doe'.
-
-
-🐛 Troubleshooting
-Make sure log files are in the correct logs/ directory.
-
-Use real tab characters between fields.
-
-Check file permissions.
-
-Use print(os.getcwd()) to verify working directory if file not found.
-
+This approach ensures the cache stays up-to-date while keeping the system efficient and secure.
